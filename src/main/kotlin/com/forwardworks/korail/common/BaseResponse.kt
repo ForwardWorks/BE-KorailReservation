@@ -6,7 +6,7 @@ import com.forwardworks.korail.common.response.BaseResponseType
 data class BaseResponse(
     @JsonProperty("code")
     val code: String,
-    @JsonProperty("messages")
+    @JsonProperty("message")
     val message: String,
     @JsonProperty("data")
     val data: Any? = null,
