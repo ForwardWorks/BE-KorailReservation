@@ -13,7 +13,6 @@ import org.springframework.web.reactive.function.server.coRouter
 class ReserveRouter(
     private val reserveHandler: ReserveHandler,
 ) {
-
     @Bean
     fun routeReserve(): RouterFunction<ServerResponse> = coRouter {
         (accept(MediaType.APPLICATION_JSON) and "/korail").nest {
