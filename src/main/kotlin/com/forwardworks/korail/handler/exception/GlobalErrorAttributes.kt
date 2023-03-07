@@ -1,7 +1,8 @@
 package com.forwardworks.korail.handler.exception
 
-import com.forwardworks.korail.handler.exception.errorcode.CustomErrorCode
-import com.forwardworks.korail.handler.exception.exception.CustomException
+import com.forwardworks.korail.handler.exception.errorcode.ServerErrorCode
+import com.forwardworks.korail.handler.exception.exception.ClientException
+import com.forwardworks.korail.handler.exception.exception.ServerException
 import org.slf4j.LoggerFactory
 import org.springframework.boot.web.error.ErrorAttributeOptions
 import org.springframework.boot.web.reactive.error.DefaultErrorAttributes
@@ -20,32 +21,36 @@ class GlobalErrorAttributes : DefaultErrorAttributes() {
         val error = this.getError(request)
 
         val errorAttributeResponse = when (error) {
-            is CustomException -> handleException(error)
+            is ServerException -> handleServerException(error)
+            is ClientException -> handleClientException(error)
             else -> handleUnknownException()
         }
 
-        val errorAttributes = mutableMapOf(
+        return mutableMapOf(
             "timestamp" to LocalDateTime.now().toString(),
             "status" to errorAttributeResponse.status.value(),
             "message" to errorAttributeResponse.message,
             "path" to request.uri().path
         )
-
-        if (errorAttributeResponse.status.is5xxServerError) {
-            log.error(getStackTrace(error))
-        }
-
-        return errorAttributes
     }
 
-    fun handleException(ex: CustomException) = ErrorAttributeResponse(
+    fun handleClientException(ex: ClientException) = ErrorAttributeResponse(
         status = ex.errorCode.status,
         message = ex.errorCode.getMessage()
     )
 
+    fun handleServerException(ex: ServerException): ErrorAttributeResponse {
+        log.error(getStackTrace(ex))
+
+        return ErrorAttributeResponse(
+            status = ex.errorCode.status,
+            message = ex.errorCode.getMessage()
+        )
+    }
+
     fun handleUnknownException() = ErrorAttributeResponse(
-        status = CustomErrorCode.INTERNAL_SERVER_ERROR.status,
-        message = CustomErrorCode.INTERNAL_SERVER_ERROR.getMessage()
+        status = ServerErrorCode.INTERNAL_SERVER_ERROR.status,
+        message = ServerErrorCode.INTERNAL_SERVER_ERROR.getMessage()
     )
 
     private fun getStackTrace(error: Throwable?): String? {
@@ -58,6 +63,6 @@ class GlobalErrorAttributes : DefaultErrorAttributes() {
 
     class ErrorAttributeResponse(
         val status: HttpStatus,
-        val message: String = ""
+        val message: String = "",
     )
 }
