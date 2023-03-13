@@ -12,7 +12,6 @@ import org.springframework.web.reactive.function.server.buildAndAwait
 class ReserveHandler(
     private val reserveService: ReserveService,
 ) {
-
     suspend fun reserve(request: ServerRequest): ServerResponse {
         return withContext(Dispatchers.Default) {
             reserveService.reserve()
